@@ -1,18 +1,24 @@
 package org.ua.und97n.org.ua.und97n.synthlife.simulation.life
 
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.AliveEntity
 import org.ua.und97n.synthlife.field.Direction
 
-abstract class PassiveEnergyProducer(initialEnergy: EnergyValue) : AliveEntity(initialEnergy) {
+abstract class PassiveEnergyProducer(
+    initialEnergy: EnergyValue,
+    genome: Genome
+) : AliveEntity(initialEnergy, genome) {
     abstract fun produceEnergy(): EnergyValue
 
     protected abstract val minimalEnergyToContain: EnergyValue
+
+    override fun canAbsorbEnergyFromConnection(direction: Direction): Boolean = false
 
     final override fun updateAliveEntity() {
         val connected = connections.numberOfConnected()
 
         if (connected == 0) {
             die(DeathReason.NO_ENERGY_OUTPUT)
-        } else if(hasProducersNearby()) {
+        } else if (hasProducersNearby()) {
             die(DeathReason.NO_SPACE)
         } else {
             energy += produceEnergy()

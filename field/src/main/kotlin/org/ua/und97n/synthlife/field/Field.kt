@@ -22,6 +22,12 @@ class Field(
 
     fun getEntity(x: Int, y: Int): Entity? =
         entities[getIndex(x, y)]
+
+    fun isCellFree(x: Int, y: Int): Boolean {
+        val index = getIndex(x, y)
+        return entities[index] == null && entitiesNext[index] == null
+    }
+
     /*
 
        fun getSun(x: Int, y: Int): SunValue =
@@ -139,7 +145,7 @@ class Field(
         val index = getIndex(x, y)
         if (entitiesNext[index] != null) {
             if (fallbackX == null || fallbackY == null) {
-                entity.replaceTo = null
+                error("Cannot place entity: $entity")
             } else {
                 tryPlaceEntity(fallbackX, fallbackY, entity)
             }
@@ -186,6 +192,6 @@ class Field(
         }
     }
 
-    private fun getIndex(x: Int, y: Int): Int =
+    private inline fun getIndex(x: Int, y: Int): Int =
         x.normalizeAsIndex(width) + y.normalizeAsIndex(height) * width
 }

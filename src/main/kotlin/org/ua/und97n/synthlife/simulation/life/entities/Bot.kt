@@ -1,18 +1,19 @@
-package org.ua.und97n.org.ua.und97n.synthlife.simulation.life
+package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.DeathReason
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.synthlife.field.*
 import org.ua.und97n.synthlife.field.Utils.getByIndexSafe
-import org.ua.und97n.synthlife.field.Utils.normalizeAsIndex
 
 class Bot(
     initialEnergy: EnergyValue = INIT_ENERGY,
     initialDirection: Direction,
-    initialGenome: ByteArray,
-) : AliveEntity(initialEnergy) {
+    genome: Genome,
+) : AliveEntity(initialEnergy, genome) {
 
     override val baseEnergyConsumption: EnergyValue = EnergyValue(0.5)
 
-    private val genome: ByteArray = initialGenome.copyOf(GENOME_SIZE)
     private var genomePointer: Int = 0
 
     private var direction: Direction = initialDirection
@@ -56,7 +57,7 @@ class Bot(
         "Bot(energy=$energy, direction=$direction)"
 
     private fun nextGenome(): Int =
-        genome[(genomePointer++).normalizeAsIndex(genome.size)].toUByte().toInt()
+        genome[genomePointer++]
 
     private fun grow() {
         val specification = nextGenome()
@@ -97,7 +98,7 @@ class Bot(
                 // turn bot into a sprig and connect everything to it
                 val sprigConnections = this.connections + EntityConnections.ofMany(ents)
                 val sprigTargetConnections = EntityConnections.ofMany(ents.filter { it.second is Bot })
-                val sprig = Sprig(Sprig.INITIAL_ENERGY + freeEnergy, sprigTargetConnections)
+                val sprig = Sprig.of(genome, sprigTargetConnections, freeEnergy)
                 sprig.initConnections(sprigConnections)
 
                 ents.forEach {
@@ -130,16 +131,16 @@ class Bot(
                     null
                 }
 
-                LEAF -> Leaf(Leaf.INIT_ENERGY)
+                LEAF -> Leaf.of(caller.genome)
 
                 BOT -> Bot(
                     initialEnergy = INIT_ENERGY,
                     initialDirection = direction,
-                    initialGenome = caller.genome,
+                    genome = caller.genome.produceChild(),
                 )
 
-                M_ROOT -> MineralRoot(MineralRoot.INIT_ENERGY)
-                O_ROOT -> OrganicRoot(OrganicRoot.INIT_ENERGY)
+                M_ROOT -> MineralRoot.of(caller.genome)
+                O_ROOT -> OrganicRoot.of(caller.genome)
             }
 
             return ent?.let { direction to it }

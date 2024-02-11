@@ -1,14 +1,20 @@
-package org.ua.und97n.org.ua.und97n.synthlife.simulation.life
+package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.DeathReason
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.synthlife.field.Direction
 import org.ua.und97n.synthlife.field.Entity
 import org.ua.und97n.synthlife.field.MineralValue
 
 abstract class AliveEntity(
-    initialEnergy: EnergyValue
+    initialEnergy: EnergyValue,
+    initialGenome: Genome,
 ) : Entity() {
     var energy: EnergyValue = initialEnergy
         protected set
+
+    val genome: Genome = initialGenome
 
     abstract val baseEnergyConsumption: EnergyValue
 

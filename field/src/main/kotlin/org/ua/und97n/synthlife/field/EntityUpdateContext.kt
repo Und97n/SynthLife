@@ -38,7 +38,7 @@ internal data class EntityUpdateContext(
     }
 
     fun isDirectionAvailable(direction: Direction): Boolean =
-        field.getEntity(direction.moveX(x), direction.moveY(y)) == null
+        field.isCellFree(direction.moveX(x), direction.moveY(y))
 
     fun putEntitiesToSpawn(entities: List<Pair<Direction, Entity>>): Boolean {
         if (entities.all { isDirectionAvailable(it.first) }) {

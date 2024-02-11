@@ -1,8 +1,7 @@
 package org.ua.und97n.org.ua.und97n.synthlife.render.javaswing
 
-import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.*
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.*
 import org.ua.und97n.synthlife.field.*
-import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
 

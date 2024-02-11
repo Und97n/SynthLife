@@ -1,10 +1,10 @@
 package org.ua.und97n.org.ua.und97n.synthlife.simulation
 
-import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Bot
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.Bot
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.synthlife.field.Field
 import org.ua.und97n.synthlife.field.Direction
-import org.ua.und97n.synthlife.field.EntityConnections
 import org.ua.und97n.synthlife.field.SunValue
 import kotlin.random.Random.Default.nextBytes
 import kotlin.random.Random.Default.nextInt
@@ -16,12 +16,13 @@ class World(
 ) {
 
     init {
-        val bot = Bot(
-            EnergyValue(40.0),
-            Direction.DOWN,
-            byteArrayOf(3, 4, 72, 5),
-        )
-        field.putEntity(5, 5, bot)
+//        val bot = Bot(
+//            EnergyValue(40.0),
+//            Direction.DOWN,
+//
+//            byteArrayOf(3, 4, 72, 5),
+//        )
+//        field.putEntity(5, 5, bot)
     }
 
     fun startSimulation() {
@@ -40,7 +41,7 @@ class World(
                 val b = Bot(
                     EnergyValue(40.0),
                     Direction.UP,
-                    nextBytes(64)
+                    Genome.random()
                 )
 
                 for(aa in 0..100) {
