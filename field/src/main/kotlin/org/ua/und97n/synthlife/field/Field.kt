@@ -10,6 +10,7 @@ class Field(
     val width: Int,
     val height: Int,
     defaultSun: SunValue,
+    internal val worldContext: WorldContext,
 ) {
     private val sun: DoubleArray = DoubleArray(width * height) { defaultSun.innerModel }
     private var mineral: DoubleArray = DoubleArray(width * height) { 0.0 }
@@ -72,12 +73,12 @@ class Field(
                 if (currentEntity != null) {
 //                    println("Going to update $currentEntity")
 
-                    val updateContext = EntityUpdateContext(
+                    val updateContext = CellHandleImpl(
                         x = x,
                         y = y,
                         sun = currentSun,
-                        mineral = currentMinerals,
-                        organic = currentOrganic,
+                        initialMineral = currentMinerals,
+                        initialOrganic = currentOrganic,
                         field = this,
                         entity = currentEntity,
                     )

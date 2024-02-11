@@ -6,6 +6,7 @@ import org.ua.und97n.synthlife.field.SunValue
 import kotlin.math.E
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 @JvmInline
 value class EnergyValue(val innerModel: Double) {
@@ -27,6 +28,9 @@ value class EnergyValue(val innerModel: Double) {
 
     fun isZero(): Boolean =
         innerModel == 0.0
+
+    fun asUnsignedByte(): Int =
+        min(255.0, 255.0 * sqrt(innerModel / CRITICAL.innerModel)).toInt()
 
     override fun toString(): String = innerModel.toString()
 

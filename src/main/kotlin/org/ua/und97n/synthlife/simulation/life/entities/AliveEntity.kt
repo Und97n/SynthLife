@@ -1,8 +1,10 @@
 package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.WorldContextImpl
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.DeathReason
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
+import org.ua.und97n.synthlife.field.CellHandle
 import org.ua.und97n.synthlife.field.Direction
 import org.ua.und97n.synthlife.field.Entity
 import org.ua.und97n.synthlife.field.MineralValue
@@ -44,29 +46,29 @@ abstract class AliveEntity(
         }
     }
 
-    abstract fun updateAliveEntity()
+    abstract fun updateAliveEntity(cellHandle: CellHandle)
 
-    final override fun update() {
+    final override fun update(cellHandle: CellHandle) {
         energy -= baseEnergyConsumption
 
         if (energy > maxEnergy) {
             val diff = energy - maxEnergy
             energy -= diff
-            cellContext.spreadMinerals(MineralValue(diff.innerModel))
+            cellHandle.spreadMinerals(MineralValue(diff.innerModel))
         }
 
         when {
-            energy.isZero() -> die(DeathReason.NO_ENERGY)
-            cellContext.sun.isCritical() && aliveUnderCriticalSun.not() ->
-                die(DeathReason.TOO_MUCH_SUN)
+            energy.isZero() -> die(cellHandle, DeathReason.NO_ENERGY)
+            cellHandle.sun.isCritical() && aliveUnderCriticalSun.not() ->
+                die(cellHandle, DeathReason.TOO_MUCH_SUN)
 
-            cellContext.minerals.isCritical() && aliveUnderCriticalMinerals.not() ->
-                die(DeathReason.TOO_MUCH_MINERALS)
+            cellHandle.minerals.isCritical() && aliveUnderCriticalMinerals.not() ->
+                die(cellHandle, DeathReason.TOO_MUCH_MINERALS)
 
-            cellContext.organics.isCritical() && aliveUnderCriticalOrganics.not() ->
-                die(DeathReason.TOO_MUCH_ORGANICS)
+            cellHandle.organics.isCritical() && aliveUnderCriticalOrganics.not() ->
+                die(cellHandle, DeathReason.TOO_MUCH_ORGANICS)
 
-            else -> updateAliveEntity()
+            else -> updateAliveEntity(cellHandle)
         }
     }
 
@@ -83,9 +85,11 @@ abstract class AliveEntity(
         return this.energy.isZero()
     }
 
-    protected fun die(deathReason: DeathReason) {
-        cellContext.spreadOrganics(Bot.ORGANIC_COST)
-        cellContext.despawnEntity()
+    protected fun die(cellHandle: CellHandle, deathReason: DeathReason) {
+        cellHandle.getWorldContext<WorldContextImpl>().registerDeath(deathReason, this)
+
+        cellHandle.spreadOrganics(Bot.ORGANIC_COST)
+        cellHandle.despawnEntity()
     }
 
     override fun toString(): String =

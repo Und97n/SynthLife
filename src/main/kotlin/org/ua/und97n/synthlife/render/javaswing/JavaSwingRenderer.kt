@@ -3,18 +3,18 @@ package org.ua.und97n.org.ua.und97n.synthlife.render.javaswing
 import org.ua.und97n.org.ua.und97n.synthlife.render.Renderer
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.World
 import org.ua.und97n.synthlife.field.*
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
+import java.awt.*
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import javax.swing.Box
 import javax.swing.JFrame
 import javax.swing.JPanel
-import kotlin.random.Random.Default.nextInt
+
 
 class JavaSwingRenderer : Renderer {
     private val frame = JFrame("SynthLife")
     private val panel = Panel()
+    private val sideMenu: SideMenu = SideMenu()
 
     private lateinit var world: World
 
@@ -26,9 +26,18 @@ class JavaSwingRenderer : Renderer {
         this.world = world
 
         frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        frame.setSize(1300, 1300)
-        frame.add(panel)
-        frame.addKeyListener(object : KeyAdapter() {
+        frame.setLocationRelativeTo(null)
+        frame.setSize(1920, 1080)
+
+        val rootPanel = JPanel()
+        rootPanel.layout = BorderLayout()
+        rootPanel.add(panel, BorderLayout.CENTER)
+        rootPanel.add(sideMenu.build(), BorderLayout.WEST)
+
+        rootPanel.isFocusable = true
+
+        frame.add(rootPanel)
+        rootPanel.addKeyListener(object : KeyAdapter() {
             override fun keyReleased(e: KeyEvent?) {
                 when (e?.keyCode) {
                     KeyEvent.VK_1 -> {
@@ -78,13 +87,14 @@ class JavaSwingRenderer : Renderer {
 
     private fun renderLoop() {
         while (frame.isVisible) {
+            sideMenu.update(world)
             panel.repaint()
             Thread.sleep(20)
         }
     }
 
     private fun render(graphics: CustomGraphics) {
-        graphics.prefill(Color.WHITE)
+        graphics.clear()
 
         val iterator = object : CellIterator {
             override fun execute(
@@ -148,6 +158,4 @@ class JavaSwingRenderer : Renderer {
             }
         }
     }
-
-
 }

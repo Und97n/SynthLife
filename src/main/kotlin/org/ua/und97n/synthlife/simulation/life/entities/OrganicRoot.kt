@@ -3,6 +3,7 @@ package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.PassiveEnergyProducer
+import org.ua.und97n.synthlife.field.CellHandle
 import org.ua.und97n.synthlife.field.OrganicValue
 
 class OrganicRoot private constructor(
@@ -19,8 +20,8 @@ class OrganicRoot private constructor(
     override val aliveUnderCriticalOrganics: Boolean
         get() = true
 
-    override fun produceEnergy(): EnergyValue =
-        EnergyValue(cellContext.tryTakeOrganic(1.0).innerModel)
+    override fun produceEnergy(cellHandle: CellHandle): EnergyValue =
+        EnergyValue(cellHandle.tryTakeOrganic(1.0).innerModel)
 
     companion object {
         val INIT_ENERGY = EnergyValue(1.0)

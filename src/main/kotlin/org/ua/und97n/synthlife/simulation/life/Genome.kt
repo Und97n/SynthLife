@@ -1,6 +1,8 @@
 package org.ua.und97n.org.ua.und97n.synthlife.simulation.life
 
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.WorldContextImpl
 import org.ua.und97n.synthlife.field.Utils.normalizeAsIndex
+import java.util.*
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -12,8 +14,8 @@ class Genome private constructor(
     operator fun get(index: Int): Int =
         genome[index.normalizeAsIndex(genome.size)].toUByte().toInt()
 
-    fun produceChild(random: Random = Random.Default): Genome =
-        if (random.nextDouble(0.0, 1.0) < MUTATION_PROBABILITY) {
+    fun produceChild(worldContextImpl: WorldContextImpl, random: Random = Random.Default): Genome =
+        if (random.nextDouble(0.0, 1.0) < worldContextImpl.mutationProbability) {
             mutate(random)
         } else {
             this
@@ -55,15 +57,27 @@ class Genome private constructor(
     companion object {
         const val GENOME_SIZE = 64
 
-        const val MUTATION_PROBABILITY = 0.1
+        fun of(vararg commands: Int): Genome =
+            Genome(
+                genome = commands.map { it.toByte() }.toByteArray(),
+                iterationNum = 0,
+                identifier = Arrays.hashCode(commands).toLong(),
+            )
+
+        fun of(vararg commands: GenomeCommand): Genome =
+            Genome(
+                genome = commands.map { it.ordinal.toByte() }.toByteArray(),
+                iterationNum = 0,
+                identifier = Arrays.hashCode(commands).toLong(),
+            )
 
         fun random(random: Random = Random.Default): Genome {
             val array = random.nextBytes(GENOME_SIZE)
 
             return Genome(
-                array,
-                0,
-                random.nextLong(),
+                genome = array,
+                iterationNum = 0,
+                identifier = random.nextLong(),
             )
         }
     }

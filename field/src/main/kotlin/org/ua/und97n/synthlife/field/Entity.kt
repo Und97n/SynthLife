@@ -4,19 +4,13 @@ abstract class Entity {
     private var entityConnections: EntityConnections = EntityConnections.none()
 
     internal var replaceTo: Entity? = this // used to have proper connections management
-    private var updateContext: EntityUpdateContext? = null
 
     val connections: EntityConnections
         get() = this.entityConnections
 
-    val cellContext: CellContext
-        get() = CellContext(updateContext!!)
-
-    internal fun updateInternal(context: EntityUpdateContext) {
-        this.updateContext = context
+    internal fun updateInternal(handle: CellHandle) {
         entityConnections.refreshEntities()
-        update()
-        this.updateContext = null
+        update(handle)
     }
 
     /**
@@ -26,5 +20,5 @@ abstract class Entity {
         entityConnections = connections
     }
 
-    abstract fun update()
+    abstract fun update(handle: CellHandle)
 }

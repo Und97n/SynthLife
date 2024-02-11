@@ -1,27 +1,30 @@
 package org.ua.und97n.org.ua.und97n.synthlife.simulation.life
 
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.AliveEntity
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.Bot
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.Sprig
+import org.ua.und97n.synthlife.field.CellHandle
 import org.ua.und97n.synthlife.field.Direction
 
 abstract class PassiveEnergyProducer(
     initialEnergy: EnergyValue,
     genome: Genome
 ) : AliveEntity(initialEnergy, genome) {
-    abstract fun produceEnergy(): EnergyValue
+    abstract fun produceEnergy(cellHandle: CellHandle): EnergyValue
 
     protected abstract val minimalEnergyToContain: EnergyValue
 
     override fun canAbsorbEnergyFromConnection(direction: Direction): Boolean = false
 
-    final override fun updateAliveEntity() {
+    final override fun updateAliveEntity(cellHandle: CellHandle) {
         val connected = connections.numberOfConnected()
 
         if (connected == 0) {
-            die(DeathReason.NO_ENERGY_OUTPUT)
-        } else if (hasProducersNearby()) {
-            die(DeathReason.NO_SPACE)
+            die(cellHandle, DeathReason.NO_ENERGY_OUTPUT)
+        } else if (hasProducersNearby(cellHandle)) {
+            die(cellHandle, DeathReason.NO_SPACE)
         } else {
-            energy += produceEnergy()
+            energy += produceEnergy(cellHandle)
 
             var toShare = (energy - minimalEnergyToContain).splitBy(connected.toDouble())
 
@@ -35,10 +38,9 @@ abstract class PassiveEnergyProducer(
         }
     }
 
-    private fun hasProducersNearby(): Boolean =
+    private fun hasProducersNearby(cellHandle: CellHandle): Boolean =
         Direction.entries.any {
-            val other = cellContext.getEntity(it) as? PassiveEnergyProducer
-            // Delete only single one, not both
-            other?.let { it.hashCode() > this.hashCode() } ?: false
+            val other = cellHandle.getEntity(it) as? AliveEntity
+            other is Bot || other is PassiveEnergyProducer
         }
 }

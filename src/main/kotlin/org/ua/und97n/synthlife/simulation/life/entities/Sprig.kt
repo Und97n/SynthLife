@@ -3,10 +3,10 @@ package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.DeathReason
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
+import org.ua.und97n.synthlife.field.CellHandle
 import org.ua.und97n.synthlife.field.Direction
 import org.ua.und97n.synthlife.field.EntityConnections
 import org.ua.und97n.synthlife.field.OrganicValue
-import kotlin.concurrent.fixedRateTimer
 
 class Sprig private constructor(
     initialEnergy: EnergyValue,
@@ -21,7 +21,7 @@ class Sprig private constructor(
         // cannot absorb from targets
         targetConnections.isConnectedTo(direction).not()
 
-    override fun updateAliveEntity() {
+    override fun updateAliveEntity(cellHandle: CellHandle) {
         targetConnections.refreshEntities()
 
         val num = targetConnections.numberOfConnected()
@@ -40,7 +40,7 @@ class Sprig private constructor(
             }
 
             if (!changed) {
-                die(DeathReason.NO_ENERGY_OUTPUT)
+                die(cellHandle, DeathReason.NO_ENERGY_OUTPUT)
             }
         } else {
             var toShare = (energy - MINIMAL_ENERGY_TO_CONTAIN).splitBy(num.toDouble())
@@ -66,6 +66,6 @@ class Sprig private constructor(
             targetConnections: EntityConnections,
             additionalEnergy: EnergyValue = EnergyValue.ZERO
         ): Sprig =
-            Sprig(OrganicRoot.INIT_ENERGY, genome, targetConnections)
+            Sprig(OrganicRoot.INIT_ENERGY + additionalEnergy, genome, targetConnections)
     }
 }

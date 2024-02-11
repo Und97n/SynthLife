@@ -3,6 +3,7 @@ package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.PassiveEnergyProducer
+import org.ua.und97n.synthlife.field.CellHandle
 import org.ua.und97n.synthlife.field.OrganicValue
 
 class Leaf private constructor(
@@ -16,8 +17,8 @@ class Leaf private constructor(
     override val minimalEnergyToContain: EnergyValue
         get() = EnergyValue(1.0)
 
-    override fun produceEnergy(): EnergyValue =
-        EnergyValue(cellContext.sun.innerModel)
+    override fun produceEnergy(cellHandle: CellHandle): EnergyValue =
+        EnergyValue(cellHandle.sun.innerModel)
 
     companion object {
         val INIT_ENERGY = EnergyValue(1.0)

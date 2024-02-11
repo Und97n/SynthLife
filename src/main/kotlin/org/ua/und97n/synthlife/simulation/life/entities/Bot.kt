@@ -1,8 +1,9 @@
 package org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities
 
-import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.DeathReason
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.WorldContextImpl
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
+import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.GenomeCommand
 import org.ua.und97n.synthlife.field.*
 import org.ua.und97n.synthlife.field.Utils.getByIndexSafe
 
@@ -10,43 +11,46 @@ class Bot(
     initialEnergy: EnergyValue = INIT_ENERGY,
     initialDirection: Direction,
     genome: Genome,
+    genomePointer: Int = 0,
 ) : AliveEntity(initialEnergy, genome) {
 
     override val baseEnergyConsumption: EnergyValue = EnergyValue(0.5)
 
-    private var genomePointer: Int = 0
+    private var genomePointer: Int = genomePointer
 
     private var direction: Direction = initialDirection
 
-    override fun updateAliveEntity() {
+    override fun updateAliveEntity(cellHandle: CellHandle) {
         var timeUnits = 1.0
 
         while (timeUnits > 0) {
-            val command = Command.of(nextGenome())
+            val command = GenomeCommand.of(nextGenome())
             spendEnergy(command.energy)
             timeUnits -= command.timeUnits
 
             when (command) {
-                Command.NOOP -> {
+                GenomeCommand.NOOP -> {
                 }
 
-                Command.MOVE -> {
-                    cellContext.tryMove(direction)
+                GenomeCommand.MOVE -> {
+                    if (this.connections.isEmpty()) {
+                        cellHandle.tryMove(direction)
+                    }
                 }
 
-                Command.TURN_CLOCKWISE -> {
+                GenomeCommand.TURN_CLOCKWISE -> {
                     direction += 1
                 }
 
-                Command.TURN_COUNTER_CLOCKWISE -> {
+                GenomeCommand.TURN_COUNTER_CLOCKWISE -> {
                     direction -= 1
                 }
 
-                Command.GROW -> {
-                    grow()
+                GenomeCommand.GROW -> {
+                    grow(cellHandle)
                 }
 
-                Command.RESTART_PROGRAM -> {
+                GenomeCommand.RESTART_PROGRAM -> {
                     genomePointer = 0
                 }
             }
@@ -59,7 +63,7 @@ class Bot(
     private fun nextGenome(): Int =
         genome[genomePointer++]
 
-    private fun grow() {
+    private fun grow(cellHandle: CellHandle) {
         val specification = nextGenome()
 
         val child1 = ChildrenCases.of((specification and 0b111))
@@ -81,18 +85,20 @@ class Bot(
 
         if (
             totalBudget >= required &&
-            (child1 == ChildrenCases.NONE || cellContext.isDirectionAvailable(direction - 1)) &&
-            (child2 == ChildrenCases.NONE || cellContext.isDirectionAvailable(direction)) &&
-            (child3 == ChildrenCases.NONE || cellContext.isDirectionAvailable(direction + 1))
+            (child1 == ChildrenCases.NONE || cellHandle.isDirectionAvailable(direction - 1)) &&
+            (child2 == ChildrenCases.NONE || cellHandle.isDirectionAvailable(direction)) &&
+            (child3 == ChildrenCases.NONE || cellHandle.isDirectionAvailable(direction + 1))
         ) {
 
+            val ctx = cellHandle.getWorldContext<WorldContextImpl>()
+
             val ents = listOfNotNull(
-                child1.provideEntity(this, direction - 1),
-                child2.provideEntity(this, direction),
-                child3.provideEntity(this, direction + 1),
+                child1.provideEntity(this, ctx, direction - 1),
+                child2.provideEntity(this, ctx, direction),
+                child3.provideEntity(this, ctx, direction + 1),
             )
 
-            if (cellContext.spawnEntities(ents)) {
+            if (cellHandle.spawnEntities(ents)) {
                 val freeEnergy = EnergyValue(totalBudget.innerModel - required.innerModel)
 
                 // turn bot into a sprig and connect everything to it
@@ -107,7 +113,7 @@ class Bot(
                     )
                 }
 
-                cellContext.replaceEntityTo(sprig)
+                cellHandle.replaceEntityTo(sprig)
             }
         }
     }
@@ -124,6 +130,7 @@ class Bot(
 
         fun provideEntity(
             caller: Bot,
+            worldContextImpl: WorldContextImpl,
             direction: Direction
         ): Pair<Direction, Entity>? {
             val ent = when (this) {
@@ -136,7 +143,8 @@ class Bot(
                 BOT -> Bot(
                     initialEnergy = INIT_ENERGY,
                     initialDirection = direction,
-                    genome = caller.genome.produceChild(),
+                    genome = caller.genome.produceChild(worldContextImpl),
+                    genomePointer = caller.genomePointer
                 )
 
                 M_ROOT -> MineralRoot.of(caller.genome)
@@ -152,25 +160,8 @@ class Bot(
         }
     }
 
-    enum class Command(val energy: EnergyValue, val timeUnits: Double) {
-        NOOP(EnergyValue.ZERO, 1.0),
-        MOVE(EnergyValue(0.5), 1.0),
-        TURN_CLOCKWISE(EnergyValue(0.15), 1.0),
-        TURN_COUNTER_CLOCKWISE(EnergyValue(0.15), 1.0),
-        GROW(EnergyValue(0.5), Double.POSITIVE_INFINITY),
-        RESTART_PROGRAM(EnergyValue.ZERO, 0.5),
-        ;
-
-        companion object {
-            fun of(genome: Int): Command =
-                Command.entries.getByIndexSafe(genome)
-        }
-    }
-
     companion object {
         val ORGANIC_COST = OrganicValue(10.0)
         val INIT_ENERGY = EnergyValue(10.0)
-
-        private const val GENOME_SIZE = 64
     }
 }
