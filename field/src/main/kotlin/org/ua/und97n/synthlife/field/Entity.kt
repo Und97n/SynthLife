@@ -1,35 +1,50 @@
 package org.ua.und97n.synthlife.field
 
 abstract class Entity {
-    private var entityConnections: EntityConnections = EntityConnections.none()
-
     internal var replaceTo: Entity? = this // used to have proper connections management
 
-    val connections: EntityConnections
-        get() = this.entityConnections
+    val connections: EntityConnections = EntityConnections.none()
+
+    abstract fun update(handle: CellHandle)
 
     internal fun updateInternal(handle: CellHandle) {
-        entityConnections.refreshEntities()
+        refreshConnections()
         update(handle)
     }
 
     /**
-     * DO NOT USE WHEN ENTITY IS ON FIELD
+     * Should not be used when entities are on field (because of concurrency.
      */
-    fun initConnections(connections: EntityConnections) {
-        entityConnections = connections
+    fun connectUnsafe(direction: Direction, entity: Entity) {
+        connections.connect(direction, entity)
+        entity.connections.connect(direction.mirror(), this)
     }
 
-    fun detachFromConnections(cellHandle: CellHandle) {
-        connections.iterateExistent { entity, direction ->
-            entity.detachFrom(direction.mirror())
+    fun disconnect(direction: Direction) {
+        this.connections.disconnect(direction)
+    }
+
+    fun replaceThis(cellHandle: CellHandle, replaceTo: Entity?, preserveConnections: Boolean = true) {
+        cellHandle.replaceEntityTo(replaceTo)
+        this.replaceTo = replaceTo
+
+        if (replaceTo != null && preserveConnections) {
+            connections.iterateExistent { entity, direction ->
+                replaceTo.connections.connect(direction, entity)
+            }
         }
-        connections.clear()
     }
 
-    open fun detachFrom(direction: Direction) {
-        connections.clearConnected(direction)
+    fun disconnectAll() {
+        this.connections.clear()
+        Direction.entries.forEach(this::disconnect)
     }
 
-    abstract fun update(handle: CellHandle)
+    private fun refreshConnections() {
+        connections.iterateExistent { entity, direction ->
+            var e = entity.replaceTo
+            if (e?.connections?.getConnected(direction.mirror()) != this)  e = null
+            connections.setConnected(direction, e)
+        }
+    }
 }

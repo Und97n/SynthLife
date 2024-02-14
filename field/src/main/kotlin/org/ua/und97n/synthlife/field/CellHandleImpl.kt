@@ -20,7 +20,7 @@ internal data class CellHandleImpl(
     var organicToSpread: OrganicValue? = null,
 
     var toSpawn: MutableList<Triple<Int, Int, Entity>>? = null, // do not create list if not needed
-) : CellHandle {
+) : CellHandle() {
 
     override val minerals: MineralValue
         get() = nextMineralValue
@@ -44,7 +44,6 @@ internal data class CellHandleImpl(
     }
 
     override fun replaceEntityTo(newEntity: Entity?) {
-        this.entity.replaceTo = newEntity
         this.nextEntity = newEntity
     }
 

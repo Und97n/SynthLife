@@ -8,6 +8,7 @@ import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.GenomeCommand
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.entities.Bot
 import org.ua.und97n.synthlife.field.Direction
+import org.ua.und97n.synthlife.field.SunValue
 
 class ManualIntegrationTests {
     @Test
@@ -63,7 +64,7 @@ class ManualIntegrationTests {
             )
         )
 
-        val world = World(10, 10)
+        val world = World(10, 10, sunOverride = SunValue(2.0))
         world.putEntity(0, 1, bot)
         world.context.tickDelay = 200
         world.context.mutationProbability = 0.0

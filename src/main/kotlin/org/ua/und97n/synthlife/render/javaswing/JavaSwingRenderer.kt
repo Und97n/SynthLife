@@ -15,12 +15,14 @@ class JavaSwingRenderer : Renderer {
     private val frame = JFrame("SynthLife")
     private val panel = Panel()
     private val sideMenu: SideMenu = SideMenu()
+    private val rootPanel = JPanel()
 
     private lateinit var world: World
 
     private lateinit var renderThread: Thread
 
     private var renderMode: RenderMode = RenderMode.DEFAULT
+    private var simpleRender: Boolean = false
 
     override fun start(world: World) {
         this.world = world
@@ -29,7 +31,6 @@ class JavaSwingRenderer : Renderer {
         frame.setLocationRelativeTo(null)
         frame.setSize(1920, 1080)
 
-        val rootPanel = JPanel()
         rootPanel.layout = BorderLayout()
         rootPanel.add(panel, BorderLayout.CENTER)
         rootPanel.add(sideMenu.build(), BorderLayout.WEST)
@@ -62,8 +63,14 @@ class JavaSwingRenderer : Renderer {
                         renderMode = RenderMode.ORGANICS
                         println("Current render mode = $renderMode")
                     }
-                    KeyEvent.VK_SPACE -> {
+                    KeyEvent.VK_R -> {
                         world.putRandomBots()
+                    }
+                    KeyEvent.VK_SPACE -> {
+                        world.context.pause = !world.context.pause
+                    }
+                    KeyEvent.VK_S -> {
+                        simpleRender = !simpleRender
                     }
                 }
             }
@@ -87,7 +94,8 @@ class JavaSwingRenderer : Renderer {
 
     private fun renderLoop() {
         while (frame.isVisible) {
-            sideMenu.update(world)
+            rootPanel.isFocusable = true
+            sideMenu.update(world, renderMode)
             panel.repaint()
             Thread.sleep(20)
         }
@@ -149,6 +157,7 @@ class JavaSwingRenderer : Renderer {
                     canvasWidth = this.width,
                     canvasHeight = this.height,
                     renderMode = renderMode,
+                    simpleRender = simpleRender,
                     offsetX = offsetX,
                     offsetY = offsetY,
                     scaleX = scale,

@@ -5,11 +5,11 @@ import org.ua.und97n.synthlife.field.OrganicValue.Companion.asOrganicValue
 import org.ua.und97n.synthlife.field.SunValue.Companion.asSunValue
 import org.ua.und97n.synthlife.field.Utils.normalizeAsIndex
 import java.util.*
+import java.util.concurrent.ThreadLocalRandom
 
 class Field(
     val width: Int,
     val height: Int,
-    defaultSun: SunValue,
     internal val worldContext: WorldContext,
 ) {
     private val sun: DoubleArray = DoubleArray(width * height) { 0.0 }
@@ -75,8 +75,6 @@ class Field(
                 val currentOrganic = organic[index].asOrganicValue()
 
                 if (currentEntity != null) {
-//                    println("Going to update $currentEntity")
-
                     val updateContext = CellHandleImpl(
                         x = x,
                         y = y,
@@ -175,6 +173,24 @@ class Field(
         this.organicNext = ttt
         Arrays.fill(ttt, 0.0)
 
+
+//        for (i in (0..(width*height/1000))) {
+//            val xx = ThreadLocalRandom.current().nextInt()
+//            val yy = ThreadLocalRandom.current().nextInt()
+//
+//            var sumMinerals = 0.0
+//            var sumOrganic = 0.0
+//            iterateAround(xx, yy, 1) { x, y ->
+//                val i = getIndex(x, y)
+//                sumMinerals += mineral[i]
+//                sumOrganic += organic[i]
+//            }
+//            iterateAround(xx, yy, 1) { x, y ->
+//                val i = getIndex(x, y)
+//                mineral[i] = sumMinerals/9.0
+//                organic[i] = sumOrganic/9.0
+//            }
+//        }
 //        iterateOverField { x, y ->
 //            val index = getIndex(x, y)
 //            mineral[index] = MineralValue(mineral[index]).update().innerModel
@@ -189,7 +205,7 @@ class Field(
         }
     }
 
-    private inline fun iterateAround(x: Int, y: Int, range: Int, action: (Int, Int) -> Unit) {
+    private inline fun iterateAround(x: Int, y: Int, range: Int, crossinline action: (Int, Int) -> Unit) {
         for (yy in (y - 1..y + 1)) {
             for (xx in (x - 1..x + 1)) {
                 action(xx, yy)

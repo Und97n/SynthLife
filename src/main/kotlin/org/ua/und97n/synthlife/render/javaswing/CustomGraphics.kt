@@ -12,6 +12,7 @@ data class CustomGraphics(
     private val canvasHeight: Int,
 
     private val renderMode: RenderMode,
+    private val simpleRender: Boolean,
 
     private val offsetX: Double = 0.0,
     private val offsetY: Double = 0.0,
@@ -55,7 +56,11 @@ data class CustomGraphics(
             else -> gg.color = BOT_COLOR
         }
 
-        gg.fillOval(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+        if (simpleRender) {
+            gg.fillRect(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+        } else {
+            gg.fillOval(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+        }
     }
 
     private fun drawPassiveEnergyProducer(entity: PassiveEnergyProducer, x: Int, y: Int) {
@@ -69,8 +74,13 @@ data class CustomGraphics(
 
                     else -> gg.color = LEAF_COLOR
                 }
-                gg.fillOval(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+                if (simpleRender) {
+                    gg.fillRect(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+                } else {
+                    gg.fillOval(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+                }
             }
+
             is MineralRoot -> {
                 when (renderMode) {
                     // black - blue
@@ -78,8 +88,18 @@ data class CustomGraphics(
 
                     else -> gg.color = M_ROOT_COLOR
                 }
-                gg.fillRect((x + 0.10).toScreenX(), (y + 0.10).toScreenY(), 0.8.toScreenSizeX(), 0.8.toScreenSizeY())
+                if (simpleRender) {
+                    gg.fillRect(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+                } else {
+                    gg.fillRect(
+                        (x + 0.10).toScreenX(),
+                        (y + 0.10).toScreenY(),
+                        0.8.toScreenSizeX(),
+                        0.8.toScreenSizeY()
+                    )
+                }
             }
+
             is OrganicRoot -> {
                 when (renderMode) {
                     // black - blue
@@ -87,13 +107,21 @@ data class CustomGraphics(
 
                     else -> gg.color = O_ROOT_COLOR
                 }
-                gg.fillRect((x + 0.10).toScreenX(), (y + 0.10).toScreenY(), 0.8.toScreenSizeX(), 0.8.toScreenSizeY())
+                if (simpleRender) {
+                    gg.fillRect(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+                } else {
+                    gg.fillRect(
+                        (x + 0.10).toScreenX(),
+                        (y + 0.10).toScreenY(),
+                        0.8.toScreenSizeX(),
+                        0.8.toScreenSizeY()
+                    )
+                }
             }
         }
     }
 
     private fun drawSprig(sprig: Sprig, x: Int, y: Int) {
-
         when (renderMode) {
             // black - red
             RenderMode.ENERGY -> gg.color = Color(sprig.energy.asUnsignedByte(), 0, 0)
@@ -101,8 +129,10 @@ data class CustomGraphics(
         }
         val sprigSize = 0.25
 
-        Direction.entries.forEach { direction ->
-            if (sprig.connections.isConnectedTo(direction)) {
+        if (simpleRender) {
+            gg.fillRect(x.toScreenX(), y.toScreenY(), 1.toScreenSizeX(), 1.toScreenSizeY())
+        } else {
+            sprig.connections.iterateExistent { _, direction ->
                 when (direction) {
                     Direction.DOWN -> gg.fillRect(
                         (x + 0.5 - sprigSize / 2).toScreenX(),
@@ -137,26 +167,28 @@ data class CustomGraphics(
     }
 
     private fun resolveCellColor(sunValue: SunValue, mineralValue: MineralValue, organicValue: OrganicValue): Color =
+        when {
+            sunValue.isCritical() -> SUN_CRITICAL_COLOR
+            mineralValue.isCritical() -> MINERAL_CRITICAL_COLOR
+            organicValue.isCritical() -> ORGANIC_CRITICAL_COLOR
 
-        if (sunValue.isCritical() || mineralValue.isCritical() || organicValue.isCritical()) {
-            Color.BLACK
-        } else {
-            when (renderMode) {
-                RenderMode.DEFAULT -> Color.WHITE
-                RenderMode.SUN -> Color(255, 255, 255 - sunValue.asUnsignedByte())
-                RenderMode.ENERGY -> Color.WHITE
-                RenderMode.MINERALS -> Color(
-                    255 - mineralValue.asUnsignedByte(),
-                    255 - mineralValue.asUnsignedByte(),
-                    255,
-                )
+            else ->
+                when (renderMode) {
+                    RenderMode.DEFAULT -> Color.WHITE
+                    RenderMode.SUN -> Color(255, 255, 255 - sunValue.asUnsignedByte())
+                    RenderMode.ENERGY -> Color.WHITE
+                    RenderMode.MINERALS -> Color(
+                        255 - mineralValue.asUnsignedByte(),
+                        255 - mineralValue.asUnsignedByte(),
+                        255,
+                    )
 
-                RenderMode.ORGANICS -> Color(
-                    255 - organicValue.asUnsignedByte(),
-                    255,
-                    255,
-                )
-            }
+                    RenderMode.ORGANICS -> Color(
+                        255 - organicValue.asUnsignedByte(),
+                        255,
+                        255,
+                    )
+                }
         }
 
     private inline fun Number.toScreenX(): Int =
@@ -172,10 +204,14 @@ data class CustomGraphics(
         (this.toDouble() * scaleY).toInt()
 
     companion object {
+        private val SUN_CRITICAL_COLOR = Color(255, 90, 0)
+        private val MINERAL_CRITICAL_COLOR = Color(255, 0, 90)
+        private val ORGANIC_CRITICAL_COLOR = Color(255, 20, 20)
+
         private val M_ROOT_COLOR = Color(100, 50, 70)
-        private val SPRIG_COLOR = Color(0, 0, 0)
+        private val SPRIG_COLOR = Color(50, 50, 50, 100)
         private val O_ROOT_COLOR = Color(100, 80, 0)
         private val LEAF_COLOR = Color(100, 200, 100)
-        private val BOT_COLOR = Color(200, 200, 200)
+        private val BOT_COLOR = Color(255, 200, 200)
     }
 }

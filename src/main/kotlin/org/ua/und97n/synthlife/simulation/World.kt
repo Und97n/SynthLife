@@ -14,15 +14,18 @@ import kotlin.random.Random.Default.nextInt
 class World(
     width: Int,
     height: Int,
+    sunOverride: SunValue? = null,
     val context: WorldContextImpl = WorldContextImpl(),
-    val field: Field = Field(width, height, SunValue(1.5), context),
+    val field: Field = Field(width, height, context),
     var actualTps: Double? = null,
 ) {
     init {
         val a = PerlinNoise(nextDouble())
 
         field.iterateAll { x, y, _, _, _, _ ->
-            field.setSun(x, y, SunValue(1.5 + 1.5 * abs( a.noise(x.toDouble(), y.toDouble()))))
+
+            val sun = sunOverride ?: SunValue(1 + 1 * abs(a.noise(x.toDouble(), y.toDouble())))
+            field.setSun(x, y, sun)
         }
     }
 
@@ -46,7 +49,11 @@ class World(
             tickCounter++
 
             synchronized(this) {
-                field.update()
+                if (context.pause.not()) {
+                    field.update()
+                } else {
+                    Thread.sleep(100)
+                }
             }
 
             Thread.sleep(context.tickDelay)
@@ -63,7 +70,7 @@ class World(
 
     fun putRandomBots() {
         synchronized(this) {
-            for (i in (0..(field.width*field.height/100))) {
+            for (i in (0..(field.width * field.height / 100))) {
                 val b = Bot(
                     EnergyValue(40.0),
                     Direction.UP,

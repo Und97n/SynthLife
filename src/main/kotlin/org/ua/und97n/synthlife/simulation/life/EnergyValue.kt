@@ -42,10 +42,10 @@ value class EnergyValue(val innerModel: Double) {
         val CRITICAL = EnergyValue(200.0)
 
         fun fromOrganic(organicValue: OrganicValue): EnergyValue =
-            EnergyValue(organicValue.innerModel*2)
+            EnergyValue(organicValue.innerModel*1)
 
         fun fromMinerals(mineralValue: MineralValue): EnergyValue =
-            EnergyValue(mineralValue.innerModel*2)
+            EnergyValue(mineralValue.innerModel*1)
 
         fun fromSun(sunValue: SunValue): EnergyValue =
             EnergyValue(sunValue.innerModel)

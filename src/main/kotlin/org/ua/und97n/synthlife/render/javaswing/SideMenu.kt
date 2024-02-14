@@ -6,36 +6,44 @@ import java.awt.Font
 import java.awt.Label
 import java.util.*
 import javax.swing.Box
+import javax.swing.JSlider
 import javax.swing.JTextArea
 
 class SideMenu {
-    private val statistics: JTextArea = JTextArea()
+    private val info: JTextArea = JTextArea()
+    private val tickDelaySlider: JSlider = JSlider(0, 500)
 
-    private val font = Font("Consolas", Font.PLAIN, 20)
+    private val font = Font("Helvetica", Font.PLAIN, 20)
 
     fun build(): Component {
         val menuBox = Box.createVerticalBox()
-        menuBox.add(Label("Statistics"))
-        menuBox.add(statistics)
+        menuBox.add(Label("Tick delay (ms)"))
+        menuBox.add(tickDelaySlider)
+        menuBox.add(Label("Info"))
+        menuBox.add(info)
 
-        statistics.isEditable = false
+        info.isEditable = false
+        info.isFocusable = false
+        tickDelaySlider.isFocusable = false
 
         menuBox.font = font
-        statistics.font = font
+        info.font = font
 
         return menuBox
     }
 
-    fun update(world: World) {
-        val deathStatistics = world.context.deathStatistics.entries.joinToString(separator = "\n") {
-            "${it.key}: ${it.value.get()}"
-        }
+    fun update(world: World, renderMode: RenderMode) {
+        world.context.tickDelay = tickDelaySlider.value.toLong()
+        info.text = """
+Render mode: $renderMode
+Actual TPS: ${formatTps(world.actualTps)}
 
-        statistics.text = "Ticks per second: ${formatTps(world.actualTps)}\n\n$deathStatistics"
+
+        """.trimIndent()+ world.context.toString()
     }
 
-    private fun formatTps(rps: Double?): String =
-        rps?.let {
+    private fun formatTps(tps: Double?): String =
+        tps?.let {
             String.format(Locale.US, "%.1f", it)
         } ?: "???"
 }

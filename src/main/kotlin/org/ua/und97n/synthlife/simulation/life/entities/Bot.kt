@@ -11,7 +11,7 @@ class Bot(
     initialEnergy: EnergyValue = INIT_ENERGY,
     initialDirection: Direction,
     genome: Genome,
-    genomePointer: Int = 0,
+    private var genomePointer: Int = 0,
 ) : AliveEntity(initialEnergy, genome) {
 
     override val baseEnergyConsumption: EnergyValue
@@ -20,12 +20,10 @@ class Bot(
     override val organicCost: OrganicValue
         get() = ORGANIC_COST
 
-    private var genomePointer: Int = genomePointer
-
     private var direction: Direction = initialDirection
 
     override fun onEnergyOverflow(cellHandle: CellHandle, overflowValue: EnergyValue) {
-        detachFromConnections(cellHandle)
+        disconnectAll()
     }
 
     override fun updateAliveEntity(cellHandle: CellHandle) {
@@ -107,21 +105,16 @@ class Bot(
             )
 
             if (cellHandle.spawnEntities(ents)) {
-                val freeEnergy = EnergyValue(totalBudget.innerModel - required.innerModel)
-
                 // turn bot into a sprig and connect everything to it
-                val sprigConnections = this.connections + EntityConnections.ofMany(ents)
-                val sprigTargetConnections = EntityConnections.ofMany(ents.filter { it.second is Bot })
+                val freeEnergy = EnergyValue(totalBudget.innerModel - required.innerModel)
+                val sprigTargetConnections = DirectionSet.of(ents.filter { it.second is Bot }.map { it.first })
                 val sprig = Sprig.of(genome, sprigTargetConnections, freeEnergy)
-                sprig.initConnections(sprigConnections)
 
                 ents.forEach {
-                    it.second.initConnections(
-                        EntityConnections.ofSingle(it.first.mirror(), this)
-                    )
+                    sprig.connectUnsafe(it.first, it.second)
                 }
 
-                cellHandle.replaceEntityTo(sprig)
+                replaceThis(cellHandle, sprig, preserveConnections = true)
             }
         }
     }

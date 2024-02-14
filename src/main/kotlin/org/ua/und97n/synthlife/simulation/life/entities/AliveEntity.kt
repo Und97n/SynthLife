@@ -93,7 +93,7 @@ abstract class AliveEntity(
 
         cellHandle.spreadMinerals(energy.convertToMinerals())
         cellHandle.spreadOrganics(organicCost)
-        cellHandle.despawnEntity()
+        replaceThis(cellHandle, null)
     }
 
     override fun toString(): String =

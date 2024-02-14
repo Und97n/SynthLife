@@ -27,7 +27,7 @@ class OrganicRoot private constructor(
         get() = ORGANIC_COST
 
     override fun produceEnergy(cellHandle: CellHandle): EnergyValue =
-        EnergyValue.fromOrganic(cellHandle.tryTakeOrganic(0.05))
+        EnergyValue.fromOrganic(cellHandle.tryTakeOrganic(0.1))
 
     companion object {
         val INIT_ENERGY = EnergyValue(1.0)

@@ -6,11 +6,11 @@ class EntityConnections private constructor(
     var down: Entity?,
     var left: Entity?,
 ) {
-    inline fun iterate(crossinline iterator: (Entity?) -> Unit) {
-        iterator(up)
-        iterator(right)
-        iterator(down)
-        iterator(left)
+    inline fun iterateEmpty(crossinline iterator: (Direction) -> Unit) {
+        if (up == null) iterator(Direction.UP)
+        if (right == null) iterator(Direction.RIGHT)
+        if (down == null) iterator(Direction.DOWN)
+        if (left == null) iterator(Direction.LEFT)
     }
 
     inline fun iterateExistent(crossinline iterator: (Entity, Direction) -> Unit) {
@@ -29,14 +29,14 @@ class EntityConnections private constructor(
         return ret
     }
 
-    fun clear() {
+    internal fun clear() {
         up = null
         right = null
         down = null
         left = null
     }
 
-    internal fun getConnected(direction: Direction): Entity? =
+    internal inline fun getConnected(direction: Direction): Entity? =
         when (direction) {
             Direction.UP -> up
             Direction.RIGHT -> right
@@ -44,7 +44,7 @@ class EntityConnections private constructor(
             Direction.LEFT -> left
         }
 
-    private fun setConnected(direction: Direction, entity: Entity?) {
+    internal inline fun setConnected(direction: Direction, entity: Entity?) {
         when (direction) {
             Direction.UP -> up = entity
             Direction.RIGHT -> right = entity
@@ -53,11 +53,38 @@ class EntityConnections private constructor(
         }
     }
 
-    fun clearConnected(direction: Direction) {
+    internal fun connect(direction: Direction, entity: Entity) {
+        when (direction) {
+            Direction.UP -> {
+                require(up == null); up = entity
+            }
+
+            Direction.RIGHT -> {
+                require(right == null); right = entity
+            }
+
+            Direction.DOWN -> {
+                require(down == null); down = entity
+            }
+
+            Direction.LEFT -> {
+                require(left == null); left = entity
+            }
+        }
+    }
+
+    fun disconnect(direction: Direction) {
         setConnected(direction, null)
     }
 
     fun isConnectedTo(direction: Direction): Boolean = getConnected(direction) != null
+
+    fun intersectWith(other: EntityConnections) {
+        if (other.up == null) this.up = null else require(this.up == null || this.up == other.up)
+        if (other.right == null) this.right = null else require(this.right == null || this.right == other.right)
+        if (other.down == null) this.down = null else require(this.down == null || this.down == other.down)
+        if (other.left == null) this.left = null else require(this.left == null || this.left == other.left)
+    }
 
     operator fun plus(more: EntityConnections): EntityConnections {
         val nw = this.copy()
@@ -75,13 +102,6 @@ class EntityConnections private constructor(
         }
 
         return nw
-    }
-
-    fun refreshEntities() {
-        up = up?.replaceTo
-        right = right?.replaceTo
-        down = down?.replaceTo
-        left = left?.replaceTo
     }
 
     private fun copy(): EntityConnections =
