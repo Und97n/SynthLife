@@ -4,10 +4,7 @@ import org.ua.und97n.org.ua.und97n.synthlife.simulation.WorldContextImpl
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.DeathReason
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
-import org.ua.und97n.synthlife.field.CellHandle
-import org.ua.und97n.synthlife.field.Direction
-import org.ua.und97n.synthlife.field.Entity
-import org.ua.und97n.synthlife.field.MineralValue
+import org.ua.und97n.synthlife.field.*
 
 abstract class AliveEntity(
     initialEnergy: EnergyValue,
@@ -19,6 +16,8 @@ abstract class AliveEntity(
     val genome: Genome = initialGenome
 
     abstract val baseEnergyConsumption: EnergyValue
+
+    abstract val organicCost: OrganicValue
 
     open val maxEnergy: EnergyValue
         get() = EnergyValue.CRITICAL
@@ -48,13 +47,17 @@ abstract class AliveEntity(
 
     abstract fun updateAliveEntity(cellHandle: CellHandle)
 
+    open fun onEnergyOverflow(cellHandle: CellHandle, overflowValue: EnergyValue) {
+        energy -= overflowValue
+        cellHandle.spreadMinerals(overflowValue.convertToMinerals())
+    }
+
     final override fun update(cellHandle: CellHandle) {
         energy -= baseEnergyConsumption
 
         if (energy > maxEnergy) {
             val diff = energy - maxEnergy
-            energy -= diff
-            cellHandle.spreadMinerals(MineralValue(diff.innerModel))
+            onEnergyOverflow(cellHandle, diff)
         }
 
         when {
@@ -88,7 +91,8 @@ abstract class AliveEntity(
     protected fun die(cellHandle: CellHandle, deathReason: DeathReason) {
         cellHandle.getWorldContext<WorldContextImpl>().registerDeath(deathReason, this)
 
-        cellHandle.spreadOrganics(Bot.ORGANIC_COST)
+        cellHandle.spreadMinerals(energy.convertToMinerals())
+        cellHandle.spreadOrganics(organicCost)
         cellHandle.despawnEntity()
     }
 

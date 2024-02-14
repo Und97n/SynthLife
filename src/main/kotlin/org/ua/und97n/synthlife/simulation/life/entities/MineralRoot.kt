@@ -17,11 +17,17 @@ class MineralRoot private constructor(
     override val minimalEnergyToContain: EnergyValue
         get() = EnergyValue(1.0)
 
+    override val aliveUnderCriticalOrganics: Boolean
+        get() = true
+
     override val aliveUnderCriticalMinerals: Boolean
         get() = true
 
+    override val organicCost: OrganicValue
+        get() = ORGANIC_COST
+
     override fun produceEnergy(cellHandle: CellHandle): EnergyValue =
-        EnergyValue(cellHandle.tryTakeMineral(1.0).innerModel)
+        EnergyValue.fromMinerals(cellHandle.tryTakeMineral(0.1))
 
     companion object {
         val INIT_ENERGY = EnergyValue(1.0)

@@ -25,7 +25,7 @@ value class MineralValue(val innerModel: Double) {
     }
 
     fun update(): MineralValue =
-        MineralValue(innerModel + (TARGET_MINERAL_VALUE.innerModel - innerModel)/50.0)
+        MineralValue(innerModel + (TARGET_MINERAL_VALUE.innerModel - innerModel)/1000.0)
 
     fun isCritical(): Boolean =
         this >= CRITICAL

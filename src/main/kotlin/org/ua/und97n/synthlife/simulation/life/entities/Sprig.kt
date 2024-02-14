@@ -17,9 +17,23 @@ class Sprig private constructor(
     override val baseEnergyConsumption: EnergyValue
         get() = EnergyValue(0.1)
 
+    override val organicCost: OrganicValue
+        get() = ORGANIC_COST
+
+    override val aliveUnderCriticalMinerals: Boolean
+        get() = true
+
+    override val aliveUnderCriticalOrganics: Boolean
+        get() = true
+
     override fun canAbsorbEnergyFromConnection(direction: Direction): Boolean =
         // cannot absorb from targets
         targetConnections.isConnectedTo(direction).not()
+
+    override fun detachFrom(direction: Direction) {
+        super.detachFrom(direction)
+        targetConnections.clearConnected(direction)
+    }
 
     override fun updateAliveEntity(cellHandle: CellHandle) {
         targetConnections.refreshEntities()
@@ -30,25 +44,24 @@ class Sprig private constructor(
             var changed = false
 
             // try to connect to other guys
-            Direction.entries.forEach { direction ->
-                (connections.getConnected(direction) as? AliveEntity)?.let {
+            connections.iterateExistent { entity, direction ->
+                (entity as? AliveEntity)?.let {
                     if (it.canAbsorbEnergyFromConnection(direction.mirror())) {
                         targetConnections = EntityConnections.ofSingle(direction, it)
                         changed = true
                     }
                 }
+
             }
 
             if (!changed) {
                 die(cellHandle, DeathReason.NO_ENERGY_OUTPUT)
             }
         } else {
-            var toShare = (energy - MINIMAL_ENERGY_TO_CONTAIN).splitBy(num.toDouble())
+            val toShare = (energy - MINIMAL_ENERGY_TO_CONTAIN).splitBy(num.toDouble()*10)
 
-            Direction.entries.forEach { direction ->
-                val e = targetConnections.getConnected(direction) as? AliveEntity
-
-                e?.let {
+            targetConnections.iterateExistent { entity, direction ->
+                (entity as? AliveEntity)?.let {
                     energy -= it.enrichWithEnergyFromConnection(direction.mirror(), toShare)
                 }
             }

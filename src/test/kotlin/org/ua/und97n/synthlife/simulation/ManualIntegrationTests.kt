@@ -89,7 +89,7 @@ class ManualIntegrationTests {
 
         val world = World(10, 20)
         world.putEntity(5, 1, bot)
-        world.context.tickDelay = 500
+        world.context.tickDelay = 200
         world.context.mutationProbability = 0.0
 
         val renderer = JavaSwingRenderer()
@@ -97,4 +97,42 @@ class ManualIntegrationTests {
         world.startSimulation()
     }
 
+    @Test
+    fun overflowTest() {
+        val bot = Bot(
+            EnergyValue.CRITICAL,
+            Direction.DOWN,
+            Genome.of(
+                GenomeCommand.GROW.ordinal, 129,
+                GenomeCommand.GROW.ordinal, 129,
+                GenomeCommand.NOOP.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+                GenomeCommand.MOVE.ordinal,
+            )
+        )
+
+        val world = World(10, 10)
+        world.putEntity(5, 2, bot)
+        world.context.tickDelay = 200
+        world.context.mutationProbability = 0.0
+
+        val renderer = JavaSwingRenderer()
+        renderer.start(world)
+        world.startSimulation()
+    }
 }

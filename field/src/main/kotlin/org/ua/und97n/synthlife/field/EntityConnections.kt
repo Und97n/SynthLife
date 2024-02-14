@@ -1,18 +1,63 @@
 package org.ua.und97n.synthlife.field
 
-@JvmInline
-value class EntityConnections private constructor(
-    private val data: Array<Entity?>
+class EntityConnections private constructor(
+    var up: Entity?,
+    var right: Entity?,
+    var down: Entity?,
+    var left: Entity?,
 ) {
+    inline fun iterate(crossinline iterator: (Entity?) -> Unit) {
+        iterator(up)
+        iterator(right)
+        iterator(down)
+        iterator(left)
+    }
+
+    inline fun iterateExistent(crossinline iterator: (Entity, Direction) -> Unit) {
+        up?.also { iterator(it, Direction.UP) }
+        right?.also { iterator(it, Direction.RIGHT) }
+        down?.also { iterator(it, Direction.DOWN) }
+        left?.also { iterator(it, Direction.LEFT) }
+    }
+
     fun isEmpty(): Boolean =
         numberOfConnected() == 0
 
-    fun numberOfConnected(): Int =
-        data.count { it != null }
+    fun numberOfConnected(): Int {
+        var ret = 0
+        iterateExistent { _, _ -> ret++ }
+        return ret
+    }
 
-    fun getConnected(direction: Direction): Entity? = data[direction.ordinal]
+    fun clear() {
+        up = null
+        right = null
+        down = null
+        left = null
+    }
 
-    fun isConnectedTo(direction: Direction): Boolean = data[direction.ordinal] != null
+    internal fun getConnected(direction: Direction): Entity? =
+        when (direction) {
+            Direction.UP -> up
+            Direction.RIGHT -> right
+            Direction.DOWN -> down
+            Direction.LEFT -> left
+        }
+
+    private fun setConnected(direction: Direction, entity: Entity?) {
+        when (direction) {
+            Direction.UP -> up = entity
+            Direction.RIGHT -> right = entity
+            Direction.DOWN -> down = entity
+            Direction.LEFT -> left = entity
+        }
+    }
+
+    fun clearConnected(direction: Direction) {
+        setConnected(direction, null)
+    }
+
+    fun isConnectedTo(direction: Direction): Boolean = getConnected(direction) != null
 
     operator fun plus(more: EntityConnections): EntityConnections {
         val nw = this.copy()
@@ -25,7 +70,7 @@ value class EntityConnections private constructor(
                     "Malformed entity connections sum"
                 }
 
-                nw.data[it.ordinal] = e
+                nw.setConnected(it, e)
             }
         }
 
@@ -33,37 +78,30 @@ value class EntityConnections private constructor(
     }
 
     fun refreshEntities() {
-        Direction.entries.forEachIndexed { index, direction ->
-            data[index] = data[index]?.replaceTo
-        }
+        up = up?.replaceTo
+        right = right?.replaceTo
+        down = down?.replaceTo
+        left = left?.replaceTo
     }
 
     private fun copy(): EntityConnections =
-        EntityConnections(this.data.copyOf())
+        EntityConnections(up, right, down, left)
 
     companion object {
-        val NONE: EntityConnections = EntityConnections(Array(Direction.entries.size) { null })
-
         fun none(): EntityConnections =
-            NONE
+            EntityConnections(null, null, null, null)
 
-        fun ofSingle(direction: Direction, entity: Entity): EntityConnections {
-            val array = Array<Entity?>(Direction.entries.size) { null }
-
-            array[direction.ordinal] = entity
-
-            return EntityConnections(array)
-        }
-
-        fun ofMany(lst: List<Pair<Direction, Entity>>): EntityConnections {
-            val array = Array<Entity?>(Direction.entries.size) { null }
-
-            lst.forEach {
-                array[it.first.ordinal] = it.second
+        fun ofSingle(direction: Direction, entity: Entity): EntityConnections =
+            none().apply {
+                setConnected(direction, entity)
             }
 
-            return EntityConnections(array)
-        }
+        fun ofMany(lst: List<Pair<Direction, Entity>>): EntityConnections =
+            none().apply {
+                lst.forEach {
+                    setConnected(it.first, it.second)
+                }
+            }
     }
 
 }

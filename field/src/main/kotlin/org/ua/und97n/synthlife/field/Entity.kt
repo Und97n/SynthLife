@@ -20,5 +20,16 @@ abstract class Entity {
         entityConnections = connections
     }
 
+    fun detachFromConnections(cellHandle: CellHandle) {
+        connections.iterateExistent { entity, direction ->
+            entity.detachFrom(direction.mirror())
+        }
+        connections.clear()
+    }
+
+    open fun detachFrom(direction: Direction) {
+        connections.clearConnected(direction)
+    }
+
     abstract fun update(handle: CellHandle)
 }

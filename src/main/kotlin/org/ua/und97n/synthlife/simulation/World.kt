@@ -7,15 +7,24 @@ import org.ua.und97n.synthlife.field.Field
 import org.ua.und97n.synthlife.field.Direction
 import org.ua.und97n.synthlife.field.Entity
 import org.ua.und97n.synthlife.field.SunValue
+import kotlin.math.abs
+import kotlin.random.Random.Default.nextDouble
 import kotlin.random.Random.Default.nextInt
 
 class World(
     width: Int,
     height: Int,
     val context: WorldContextImpl = WorldContextImpl(),
-    val field: Field = Field(width, height, SunValue(2.0), context),
+    val field: Field = Field(width, height, SunValue(1.5), context),
     var actualTps: Double? = null,
 ) {
+    init {
+        val a = PerlinNoise(nextDouble())
+
+        field.iterateAll { x, y, _, _, _, _ ->
+            field.setSun(x, y, SunValue(1.5 + 1.5 * abs( a.noise(x.toDouble(), y.toDouble()))))
+        }
+    }
 
     fun putEntity(x: Int, y: Int, entity: Entity) {
         synchronized(this) {
@@ -54,14 +63,14 @@ class World(
 
     fun putRandomBots() {
         synchronized(this) {
-            for (i in (0..400)) {
+            for (i in (0..(field.width*field.height/100))) {
                 val b = Bot(
                     EnergyValue(40.0),
                     Direction.UP,
                     Genome.random(),
                 )
 
-                for(aa in 0..100) {
+                for (aa in 0..100) {
                     val x = nextInt()
                     val y = nextInt()
                     if (field.getEntity(x, y) == null) {

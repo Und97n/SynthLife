@@ -80,6 +80,7 @@ internal data class CellHandleImpl(
     override fun tryTakeMineral(flowRate: Double): MineralValue {
         val amount = nextMineralValue.byFlowRate(flowRate)
         nextMineralValue -= amount
+
         return amount
     }
 

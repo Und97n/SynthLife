@@ -18,7 +18,7 @@ value class SunValue(val innerModel: Double) {
         min(255.0, 255.0*innerModel/ CRITICAL.innerModel).toInt()
 
     companion object {
-        val CRITICAL = SunValue(10.0)
+        val CRITICAL = SunValue(5.0)
 
         fun Double.asSunValue(): SunValue =
             SunValue(this)

@@ -14,11 +14,19 @@ class Bot(
     genomePointer: Int = 0,
 ) : AliveEntity(initialEnergy, genome) {
 
-    override val baseEnergyConsumption: EnergyValue = EnergyValue(0.5)
+    override val baseEnergyConsumption: EnergyValue
+        get() = EnergyValue(1.0)
+
+    override val organicCost: OrganicValue
+        get() = ORGANIC_COST
 
     private var genomePointer: Int = genomePointer
 
     private var direction: Direction = initialDirection
+
+    override fun onEnergyOverflow(cellHandle: CellHandle, overflowValue: EnergyValue) {
+        detachFromConnections(cellHandle)
+    }
 
     override fun updateAliveEntity(cellHandle: CellHandle) {
         var timeUnits = 1.0

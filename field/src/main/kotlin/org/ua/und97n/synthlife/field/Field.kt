@@ -12,7 +12,7 @@ class Field(
     defaultSun: SunValue,
     internal val worldContext: WorldContext,
 ) {
-    private val sun: DoubleArray = DoubleArray(width * height) { defaultSun.innerModel }
+    private val sun: DoubleArray = DoubleArray(width * height) { 0.0 }
     private var mineral: DoubleArray = DoubleArray(width * height) { 0.0 }
     private var organic: DoubleArray = DoubleArray(width * height) { 0.0 }
     private var entities: Array<Entity?> = Array(width * height) { null }
@@ -20,6 +20,10 @@ class Field(
     private var mineralNext: DoubleArray = DoubleArray(width * height) { 0.0 }
     private var organicNext: DoubleArray = DoubleArray(width * height) { 0.0 }
     private var entitiesNext: Array<Entity?> = Array(width * height) { null }
+
+    fun setSun(x: Int, y: Int, sunValue: SunValue) {
+        sun[getIndex(x, y)] = sunValue.innerModel
+    }
 
     fun getEntity(x: Int, y: Int): Entity? =
         entities[getIndex(x, y)]
@@ -171,10 +175,10 @@ class Field(
         this.organicNext = ttt
         Arrays.fill(ttt, 0.0)
 
-        iterateOverField { x, y ->
-            val index = getIndex(x, y)
-            mineral[index] = MineralValue(mineral[index]).update().innerModel
-        }
+//        iterateOverField { x, y ->
+//            val index = getIndex(x, y)
+//            mineral[index] = MineralValue(mineral[index]).update().innerModel
+//        }
     }
 
     private inline fun iterateOverField(action: (Int, Int) -> Unit) {

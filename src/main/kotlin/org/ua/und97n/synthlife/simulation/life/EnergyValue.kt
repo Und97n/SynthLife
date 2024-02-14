@@ -26,6 +26,9 @@ value class EnergyValue(val innerModel: Double) {
     fun convertToOrganic(): OrganicValue =
         OrganicValue(this.innerModel)
 
+    fun convertToMinerals(): MineralValue =
+        MineralValue(this.innerModel)
+
     fun isZero(): Boolean =
         innerModel == 0.0
 
@@ -36,9 +39,15 @@ value class EnergyValue(val innerModel: Double) {
 
     companion object {
         val ZERO = EnergyValue(0.0)
-        val CRITICAL = EnergyValue(100.0)
+        val CRITICAL = EnergyValue(200.0)
 
-        fun fromSunAndMinerals(sunValue: SunValue, mineralValue: MineralValue): EnergyValue =
-            EnergyValue(sunValue.innerModel * mineralValue.innerModel)
+        fun fromOrganic(organicValue: OrganicValue): EnergyValue =
+            EnergyValue(organicValue.innerModel*2)
+
+        fun fromMinerals(mineralValue: MineralValue): EnergyValue =
+            EnergyValue(mineralValue.innerModel*2)
+
+        fun fromSun(sunValue: SunValue): EnergyValue =
+            EnergyValue(sunValue.innerModel)
     }
 }

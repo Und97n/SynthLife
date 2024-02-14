@@ -4,6 +4,7 @@ import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.EnergyValue
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.Genome
 import org.ua.und97n.org.ua.und97n.synthlife.simulation.life.PassiveEnergyProducer
 import org.ua.und97n.synthlife.field.CellHandle
+import org.ua.und97n.synthlife.field.Direction
 import org.ua.und97n.synthlife.field.OrganicValue
 
 class Leaf private constructor(
@@ -17,8 +18,20 @@ class Leaf private constructor(
     override val minimalEnergyToContain: EnergyValue
         get() = EnergyValue(1.0)
 
+    override val organicCost: OrganicValue
+        get() = ORGANIC_COST
+
     override fun produceEnergy(cellHandle: CellHandle): EnergyValue =
-        EnergyValue(cellHandle.sun.innerModel)
+        if (hasLeafsNearby(cellHandle)) {
+            EnergyValue.ZERO
+        } else {
+            EnergyValue(cellHandle.sun.innerModel)
+        }
+
+    private fun hasLeafsNearby(cellHandle: CellHandle): Boolean =
+        Direction.entries.any {
+            cellHandle.getEntity(it) is Leaf
+        }
 
     companion object {
         val INIT_ENERGY = EnergyValue(1.0)
